@@ -21,6 +21,10 @@ export const PasscodePageTemplateStyles = {
     closeButtonContainer: "flex-shrink-0",
     closeButton: "cursor-pointer",
     closeIcon: "min-w-[26px] min-h-[26px] mt-1.5 sm:mt-2 text-iw-darkRed",
+    successContainer: "bg-green-50 w-full px-3 sm:px-5 py-3 border-t sm:rounded-t-lg",
+    successContentWrapper: "flex items-start justify-between gap-2 max-w-xl mx-auto",
+    successText: "text-sm text-green-700 break-words whitespace-normal",
+    successTextContainer: "flex-1 pr-2",
     bottomBorder: "pin-page-warning-text-border w-full mt-2 sm:mt-3 md:mt-5",
     contentContainer: "w-full px-4 sm:px-8 py-3 sm:py-5 md:py-7 space-y-4 flex flex-col items-center",
 }

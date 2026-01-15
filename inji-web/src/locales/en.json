@@ -86,13 +86,16 @@
     "submit":"Submit",
     "submitting":"Submitting",
     "setPasscode":"Set your passcode to get started",
-    "setPasscodeDescription":"Please remember or securely store your passcode. You’ll need it each time you access the wallet.",
+    "setPasscodeDescription":"Please remember or securely store your passcode. You'll need it each time you access the wallet.",
     "enterPasscode":"Enter Your Passcode to Continue",
     "enterPasscodeDescription":"Use the same passcode you set earlier to access your account or wallet.",
     "enterPasscodeLabel": "Enter Passcode",
     "confirmPasscodeLabel":"Confirm Passcode",
     "forgotPasscode":"Forgot Passcode",
     "passcodeWarning":"Make sure you remember the password for future login",
+    "success":{
+      "passcodeSetSuccess":"Passcode set successfully! Redirecting..."
+    },
     "error":{
       "walletNotFoundError":"Wallet not found",
       "passcodeLengthError":"Please Enter 6 digits in the Pin",

@@ -1,17 +1,17 @@
-import React, {Fragment, useEffect, useState} from 'react';
-import {useNavigate} from 'react-router-dom';
-import {api} from '../../../utils/api';
-import {SolidButton} from '../../../components/Common/Buttons/SolidButton';
-import {useTranslation} from 'react-i18next';
-import {useUser} from '../../../hooks/User/useUser';
-import {PasscodeInput} from '../../../components/Common/Input/PasscodeInput';
-import {PasscodePageStyles} from './PasscodePageStyles';
-import {HTTP_STATUS_CODES, KEYS, NETWORK_ERROR_MESSAGE, passcodeLength, ROUTES} from "../../../utils/constants";
-import {PasscodePageTemplate} from "../../../components/PageTemplate/PasscodePage/PasscodePageTemplate";
-import {TertiaryButton} from "../../../components/Common/Buttons/TertiaryButton";
-import {useApi} from "../../../hooks/useApi";
-import {ApiError, ApiResult, ErrorType, Wallet} from "../../../types/data";
-import {AppStorage} from "../../../utils/AppStorage";
+import React, { Fragment, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { api } from '../../../utils/api';
+import { SolidButton } from '../../../components/Common/Buttons/SolidButton';
+import { useTranslation } from 'react-i18next';
+import { useUser } from '../../../hooks/User/useUser';
+import { PasscodeInput } from '../../../components/Common/Input/PasscodeInput';
+import { PasscodePageStyles } from './PasscodePageStyles';
+import { HTTP_STATUS_CODES, KEYS, NETWORK_ERROR_MESSAGE, passcodeLength, ROUTES } from "../../../utils/constants";
+import { PasscodePageTemplate } from "../../../components/PageTemplate/PasscodePage/PasscodePageTemplate";
+import { TertiaryButton } from "../../../components/Common/Buttons/TertiaryButton";
+import { useApi } from "../../../hooks/useApi";
+import { ApiError, ApiResult, ErrorType, Wallet } from "../../../types/data";
+import { AppStorage } from "../../../utils/AppStorage";
 
 const WalletLockStatus = {
     TEMPORARILY_LOCKED: 'temporarily_locked',
@@ -26,7 +26,7 @@ const walletStatusToTestIdSuffix: Record<string, string> = {
 };
 
 export const PasscodePage: React.FC = () => {
-    const {t} = useTranslation('PasscodePage');
+    const { t } = useTranslation('PasscodePage');
     const navigate = useNavigate();
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
@@ -36,7 +36,7 @@ export const PasscodePage: React.FC = () => {
     const [passcode, setPasscode] = useState<string[]>(initialPasscodeArray);
     const [confirmPasscode, setConfirmPasscode] = useState<string[]>(initialPasscodeArray);
 
-    const {saveWalletId} = useUser();
+    const { saveWalletId } = useUser();
     const createWalletApi = useApi<Wallet>();
     const walletsApi = useApi<Wallet[]>();
     const unlockWalletApi = useApi<Wallet>();
@@ -129,15 +129,16 @@ export const PasscodePage: React.FC = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const unlockWallet = async (walletId: string, pin: string) => {
+    const unlockWallet = async (walletId: string, pin: string, isNewWalletCreation: boolean = false) => {
         if (!walletId) {
             console.error(`Wallet not found for Wallet Id: ${walletId}`);
             setError(t('error.walletNotFoundError'));
+            setLoading(false);
             navigate(ROUTES.USER_PASSCODE);
         } else {
             const response = await unlockWalletApi.fetchData({
                 apiConfig: api.unlockWallet,
-                body: {walletPin: pin},
+                body: { walletPin: pin },
                 url: api.unlockWallet.url(walletId),
             })
 
@@ -151,9 +152,10 @@ export const PasscodePage: React.FC = () => {
                     // Reset passcode field when incorrect passcode is entered
                     setPasscode(initialPasscodeArray);
                 }
+                setLoading(false);
             } else {
                 saveWalletId(walletId)
-                handleUnlockSuccess();
+                handleUnlockSuccess(isNewWalletCreation);
             }
         }
     };
@@ -173,18 +175,24 @@ export const PasscodePage: React.FC = () => {
         if (!response.ok()) {
             console.error("Error occurred while creating Wallet:", response.error);
             const isErrorHandled = handleCommonErrors(response)
-            if(!isErrorHandled) {
+            if (!isErrorHandled) {
                 const errorMessage = ((response.error as ApiError)?.response?.data as ErrorType).errorMessage ?? t('Common:error.unknownError.message');
                 setError(`${t('error.createWalletError')}: ${errorMessage}`);
             }
+            setLoading(false);
         } else {
             const createdWallet = response.data!;
-            await unlockWallet(createdWallet.walletId, pin);
+            // Clear any errors when wallet is created successfully
+            setError(null);
+            await unlockWallet(createdWallet.walletId, pin, true);
         }
-        
+
     };
 
-    const handleUnlockSuccess = () => {
+    const handleUnlockSuccess = (showSuccessMessage: boolean = false) => {
+        // Set loading to false after unlock completes
+        setLoading(false);
+
         // If the user was asked to re-login due to an expired session, redirect them to the page they were trying to access
         let redirectPath: string = ROUTES.USER_HOME
         const storedRedirectPath = AppStorage.getItem(KEYS.REDIRECT_TO, true);
@@ -192,7 +200,13 @@ export const PasscodePage: React.FC = () => {
             redirectPath = storedRedirectPath!;
             AppStorage.removeItem(KEYS.REDIRECT_TO, true);
         }
-        navigate(redirectPath);
+
+        // If this is wallet creation, pass flag to show success toast on home page
+        if (showSuccessMessage) {
+            navigate(redirectPath, { state: { passcodeSetSuccess: true } });
+        } else {
+            navigate(redirectPath);
+        }
     }
 
     const handleSubmit = async () => {
@@ -201,6 +215,7 @@ export const PasscodePage: React.FC = () => {
 
         if (isUserCreatingWallet()) {
             await createWallet();
+            // Note: setLoading(false) is called in handleUnlockSuccess after unlock completes
         } else {
             const walletId = wallets ? wallets[0].walletId : undefined
             const formattedPasscode = passcode.join('');
@@ -212,8 +227,8 @@ export const PasscodePage: React.FC = () => {
             }
 
             await unlockWallet(walletId, formattedPasscode);
+            // Note: setLoading(false) is called in handleUnlockSuccess after unlock completes
         }
-        setLoading(false);
     };
 
     const isButtonDisabled =
@@ -226,15 +241,15 @@ export const PasscodePage: React.FC = () => {
 
     useEffect(() => {
         if (isUserCreatingWallet()) {
-            if (!passcode.includes('') && 
+            if (!passcode.includes('') &&
                 !confirmPasscode.includes('') &&
                 passcode.join('') !== confirmPasscode.join('')) {
                 setError(t('error.passcodeMismatchError'));
-            } 
+            }
             // Clear error if either field is incomplete OR they match
-            else if (passcode.includes('') || 
-                     confirmPasscode.includes('') ||
-                     passcode.join('') === confirmPasscode.join('')) {
+            else if (passcode.includes('') ||
+                confirmPasscode.includes('') ||
+                passcode.join('') === confirmPasscode.join('')) {
                 setError(null);
             }
         }
@@ -256,13 +271,13 @@ export const PasscodePage: React.FC = () => {
 
         return <div className={PasscodePageStyles.forgotPasscodeContainer}>
             <TertiaryButton onClick={handleForgotPasscode} title={t('forgotPasscode') + "?"}
-                            testId={"forgot-passcode"} className={PasscodePageStyles.forgotPasscodeButton}/>
+                testId={"forgot-passcode"} className={PasscodePageStyles.forgotPasscodeButton} />
         </div>;
     }
 
     function renderPasscodeInput(label: string, value: string[], onChange: (values: string[]) => void, testId: string) {
         return <PasscodeInput label={label} value={value} onChange={onChange} testId={testId}
-                              disabled={!canUnlockWallet}/>;
+            disabled={!canUnlockWallet} />;
     }
 
     const renderContent = () => {
