@@ -147,6 +147,7 @@
     "containerHeading": "Lista de emissores",
     "containerSubHeading": "Pesquise seu emissor confiável e escolha um tipo de credencial na próxima etapa.",
     "errorContent": "O serviço não está disponível no momento. Tente novamente mais tarde.",
+    "guestToastMessage": "Você está navegando como convidado. Faça login na sua carteira para compartilhar credenciais com os verificadores.",
     "searchIssuer": {
       "helpText": {
         "info": "Pesquise pelo nome do emissor usando apenas letras, números, hífens (-), sublinhados (_) ou colchetes ( ).",

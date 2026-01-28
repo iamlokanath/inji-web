@@ -1,4 +1,5 @@
 import React, {useEffect} from "react";
+import {useLocation, useNavigate} from "react-router-dom";
 import {IntroBox} from "../components/Common/IntroBox";
 import {SearchIssuer} from "../components/Issuers/SearchIssuer";
 import {IssuersList} from "../components/Issuers/IssuersList";
@@ -15,8 +16,20 @@ import {useUser} from "../hooks/User/useUser";
 export const IssuersPage: React.FC<IssuerPageProps> = ({className}) => {
     const {state, fetchData} = useApi();
     const dispatch = useDispatch();
+    const location = useLocation();
+    const navigate = useNavigate();
     const {t} = useTranslation("IssuersPage");
     const {isUserLoggedIn, fetchUserProfile} = useUser()
+
+    useEffect(() => {
+        if (location.state?.fromGuest) {
+            toast.warning(t("guestToastMessage"), {
+                toastId: "guest-mode-toast",
+                position: "top-right",
+            });
+            navigate(location.pathname, { replace: true, state: {} });
+        }
+    }, [location.state?.fromGuest, location.pathname, navigate, t]);
 
     useEffect(() => {
         async function fetchIssuers() {

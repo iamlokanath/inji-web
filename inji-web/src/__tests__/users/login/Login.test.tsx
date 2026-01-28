@@ -50,7 +50,7 @@ describe("Login Page Tests", () => {
       const guestButton = screen.getByTestId("home-banner-guest-login");
       fireEvent.click(guestButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(testFromPath, { replace: true });
+      expect(mockNavigate).toHaveBeenCalledWith(testFromPath, { replace: true, state: { fromGuest: true } });
   });
 
   test("Guest login button navigates to /issuers if no state is provided", () => {
@@ -59,7 +59,7 @@ describe("Login Page Tests", () => {
       const guestButton = screen.getByTestId("home-banner-guest-login");
       fireEvent.click(guestButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith("/issuers", { replace: true });
+      expect(mockNavigate).toHaveBeenCalledWith("/issuers", { replace: true, state: { fromGuest: true } });
   });
 
   test("Google login button redirects to Google OAuth URL", () => {

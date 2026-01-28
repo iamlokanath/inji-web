@@ -147,6 +147,7 @@
     "containerHeading": "Liste des émetteurs",
     "containerSubHeading": "Recherchez votre émetteur de confiance et choisissez un type d'identifiant à l'étape suivante.",
     "errorContent": "Le service est actuellement indisponible. ",
+    "guestToastMessage": "Vous naviguez en tant qu'invité. Connectez-vous à votre portefeuille pour partager les justificatifs avec les vérificateurs.",
     "searchIssuer": {
       "helpText": {
         "info": "Recherchez par nom d'émetteur en utilisant uniquement des lettres, des chiffres, des traits d'union (-), des traits de soulignement (_) ou des crochets ( ).",

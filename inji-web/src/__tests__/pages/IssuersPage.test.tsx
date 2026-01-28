@@ -1,5 +1,6 @@
 import React from "react";
 import {render, screen, waitFor} from "@testing-library/react";
+import {MemoryRouter} from "react-router-dom";
 import {useDispatch} from "react-redux";
 import {toast} from "react-toastify";
 import {mockApiResponse, mockUseApi} from "../../test-utils/setupUseApiMock";
@@ -36,6 +37,7 @@ jest.mock("../../hooks/User/useUser", () => ({
 jest.mock("react-toastify", () => ({
     toast: {
         error: jest.fn(),
+        warning: jest.fn(),
     },
 }));
 
@@ -72,7 +74,7 @@ describe("IssuersPage", () => {
             state: RequestStatus.LOADING,
         });
 
-        render(<IssuersPage/>);
+        render(<MemoryRouter><IssuersPage/></MemoryRouter>);
 
         expect(screen.getByTestId("Home-Page-Container")).toBeInTheDocument();
         expect(mockDispatch).not.toHaveBeenCalled();
@@ -86,7 +88,7 @@ describe("IssuersPage", () => {
             state: RequestStatus.DONE,
         });
 
-        render(<IssuersPage/>);
+        render(<MemoryRouter><IssuersPage/></MemoryRouter>);
 
         await waitFor(() => {
             expect(mockFetchUserProfile).not.toHaveBeenCalled();
@@ -106,7 +108,7 @@ describe("IssuersPage", () => {
         });
         window._env_.IGNORED_ISSUER_IDS = "issuer1";
 
-        render(<IssuersPage/>);
+        render(<MemoryRouter><IssuersPage/></MemoryRouter>);
 
         await waitFor(() => {
             expect(mockFetchUserProfile).not.toHaveBeenCalled();
@@ -133,7 +135,7 @@ describe("IssuersPage", () => {
         });
         window._env_.IGNORED_ISSUER_IDS = "";
 
-        render(<IssuersPage />);
+        render(<MemoryRouter><IssuersPage /></MemoryRouter>);
 
         await waitFor(() => {
             expect(mockFetchUserProfile).not.toHaveBeenCalled();
@@ -157,7 +159,7 @@ describe("IssuersPage", () => {
             state: RequestStatus.DONE,
         });
 
-        render(<IssuersPage/>);
+        render(<MemoryRouter><IssuersPage/></MemoryRouter>);
 
         await waitFor(() => {
             expect(mockFetchUserProfile).toHaveBeenCalled();
@@ -177,7 +179,7 @@ describe("IssuersPage", () => {
             status: 500,
         });
 
-        render(<IssuersPage/>);
+        render(<MemoryRouter><IssuersPage/></MemoryRouter>);
 
         await waitFor(() => {
             expect(toast.error).toHaveBeenCalledWith("The service is currently unavailable now. Please try again later.");
@@ -199,7 +201,7 @@ describe("IssuersPage", () => {
             state: RequestStatus.DONE,
         });
 
-        render(<IssuersPage/>);
+        render(<MemoryRouter><IssuersPage/></MemoryRouter>);
 
         await waitFor(() => {
             expect(toast.error).toHaveBeenCalledWith("The service is currently unavailable now. Please try again later.");
@@ -211,7 +213,7 @@ describe("IssuersPage", () => {
         mockFetchUserProfile.mockRejectedValue(new Error("User profile fetch failed"));
         mockUseApi.state = RequestStatus.ERROR;
 
-        render(<IssuersPage/>);
+        render(<MemoryRouter><IssuersPage/></MemoryRouter>);
 
         await waitFor(() => {
             expect(toast.error).toHaveBeenCalledWith("The service is currently unavailable now. Please try again later.");
@@ -222,10 +224,32 @@ describe("IssuersPage", () => {
         mockIsUserLoggedIn.mockReturnValue(false);
         mockUseApi.state = RequestStatus.LOADING;
 
-        render(<IssuersPage className="custom-class"/>);
+        render(<MemoryRouter><IssuersPage className="custom-class"/></MemoryRouter>);
 
         const introBoxContainer = screen.getByTestId("Home-Page-Container")
             .querySelector(".custom-class");
         expect(introBoxContainer).toBeInTheDocument();
+    });
+
+    it("should show guest toast when arriving from Continue as Guest", async () => {
+        mockIsUserLoggedIn.mockReturnValue(false);
+        mockUseApi.state = RequestStatus.DONE;
+        mockApiResponse({
+            data: {response: {issuers: mockIssuerObjectList}},
+            state: RequestStatus.DONE,
+        });
+
+        render(
+            <MemoryRouter initialEntries={[{ pathname: "/issuers", state: { fromGuest: true } }]}>
+                <IssuersPage/>
+            </MemoryRouter>
+        );
+
+        await waitFor(() => {
+            expect(toast.warning).toHaveBeenCalledWith(
+                "You are browsing as a guest. Log in to your wallet to share credentials with verifiers.",
+                expect.objectContaining({ toastId: "guest-mode-toast", position: "top-right" })
+            );
+        });
     });
 });

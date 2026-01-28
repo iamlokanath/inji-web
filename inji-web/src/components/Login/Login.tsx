@@ -21,7 +21,7 @@ export const Login: React.FC = () => {
     if (guestClicked) return; // guard against double click
     setGuestClicked(true);
     const redirectPath = location.state?.from?.pathname || "/issuers";
-    navigate(redirectPath, { replace: true });
+    navigate(redirectPath, { replace: true, state: { fromGuest: true } });
   };
 
   const Separator:React.FC=()=>{
